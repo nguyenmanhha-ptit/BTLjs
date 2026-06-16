@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TechZone - Shop bán đồ điện tử uy tín. Điện thoại, Laptop, Tablet, Phụ kiện chính hãng, giá tốt nhất.">
+    <meta name="keywords" content="techzone, điện tử, điện thoại, laptop, tablet, phụ kiện, tai nghe">
+    <meta name="author" content="TechZone Team">
+    <title>TechZone ⚡ Shop Đồ Điện Tử</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+    <!-- ============ HEADER ============ -->
+    <header class="header" id="header">
+        <div class="header-container">
+            <!-- Logo -->
+            <a href="#" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">TechZone</span>
+            </a>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" 
+                       class="search-input" 
+                       id="search-input" 
+                       placeholder="Tìm kiếm sản phẩm..."
+                       autocomplete="off">
+            </div>
+
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <!-- Dark Mode Toggle -->
+                <button class="header-btn" id="theme-toggle-btn" title="Chuyển đổi giao diện">
+                    🌙
+                </button>
+                <!-- Cart Button -->
+                <button class="header-btn" id="cart-btn" title="Giỏ hàng">
+                    🛒
+                    <span class="cart-badge hidden" id="cart-badge">0</span>
+                </button>
+                <!-- Mobile Menu -->
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ HERO SECTION ============ -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                🔥 Ưu đãi đặc biệt — Giảm đến 30%
+            </div>
+            <h1>
+                Công Nghệ <span class="gradient-text">Đỉnh Cao</span><br>
+                Giá Tốt Nhất
+            </h1>
+            <p>Khám phá bộ sưu tập điện thoại, laptop, tablet và phụ kiện chính hãng với giá ưu đãi hấp dẫn nhất thị trường.</p>
+            <a href="#products" class="hero-btn">
+                Khám phá ngay →
+            </a>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number">500+</div>
+                    <div class="hero-stat-label">Sản phẩm</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number">50K+</div>
+                    <div class="hero-stat-label">Khách hàng</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number">99%</div>
+                    <div class="hero-stat-label">Hài lòng</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="main" id="products">
+        <h2 class="section-title">🛍️ Sản Phẩm Nổi Bật</h2>
+        <p class="section-subtitle">Chọn danh mục yêu thích để tìm sản phẩm phù hợp</p>
+
+        <!-- Category Filters -->
+        <div class="category-filters" id="category-filters">
+            <!-- Rendered by JS -->
+        </div>
+
+        <!-- Controls: Sort + Result Count -->
+        <div class="controls-bar">
+            <div class="result-count" id="result-count">
+                Hiển thị <span>0</span> sản phẩm
+            </div>
+            <select class="sort-select" id="sort-select">
+                <option value="default">Sắp xếp: Mặc định</option>
+                <option value="price-asc">Giá: Thấp → Cao</option>
+                <option value="price-desc">Giá: Cao → Thấp</option>
+                <option value="name-asc">Tên: A → Z</option>
+                <option value="rating-desc">Đánh giá: Cao nhất</option>
+            </select>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="product-grid" id="product-grid">
+            <!-- Rendered by JS -->
+        </div>
+    </main>
+
+    <!-- ============ CART OVERLAY ============ -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+
+    <!-- ============ CART SIDEBAR ============ -->
+    <aside class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h2 class="cart-title">🛒 Giỏ hàng</h2>
+            <button class="cart-close-btn" id="cart-close-btn" title="Đóng">✕</button>
+        </div>
+        <div class="cart-items" id="cart-items">
+            <!-- Rendered by JS -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span class="cart-total-label">Tổng cộng:</span>
+                <span class="cart-total-value" id="cart-total">0₫</span>
+            </div>
+            <button class="checkout-btn" id="checkout-btn" disabled>
+                💳 Thanh toán
+            </button>
+        </div>
+    </aside>
+
+    <!-- ============ CHECKOUT MODAL ============ -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">📋 Thông tin đặt hàng</h3>
+                <button class="modal-close-btn" id="checkout-close-btn" title="Đóng">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <label class="form-label" for="customer-name">
+                            Họ và tên <span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-input" id="customer-name" placeholder="Nguyễn Văn A" required>
+                        <div class="form-error" id="name-error">Vui lòng nhập họ tên</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="customer-phone">
+                            Số điện thoại <span class="required">*</span>
+                        </label>
+                        <input type="tel" class="form-input" id="customer-phone" placeholder="0912 345 678" required>
+                        <div class="form-error" id="phone-error">Vui lòng nhập số điện thoại hợp lệ</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="customer-email">
+                            Email
+                        </label>
+                        <input type="email" class="form-input" id="customer-email" placeholder="email@example.com">
+                        <div class="form-error" id="email-error">Email không hợp lệ</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="customer-address">
+                            Địa chỉ giao hàng <span class="required">*</span>
+                        </label>
+                        <textarea class="form-textarea" id="customer-address" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" required></textarea>
+                        <div class="form-error" id="address-error">Vui lòng nhập địa chỉ</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="payment-method">
+                            Phương thức thanh toán <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="payment-method" required>
+                            <option value="">-- Chọn phương thức --</option>
+                            <option value="cod">💵 Thanh toán khi nhận hàng (COD)</option>
+                            <option value="banking">🏦 Chuyển khoản ngân hàng</option>
+                            <option value="momo">📱 Ví MoMo</option>
+                            <option value="zalopay">💳 ZaloPay</option>
+                        </select>
+                        <div class="form-error" id="payment-error">Vui lòng chọn phương thức thanh toán</div>
+                    </div>
+                    <button type="submit" class="form-submit-btn">
+                        ✅ Xác nhận đặt hàng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ SUCCESS MODAL ============ -->
+    <div class="modal-overlay" id="success-modal">
+        <div class="modal">
+            <div class="success-modal-content">
+                <div class="success-icon">✅</div>
+                <h3 class="success-title">Đặt hàng thành công!</h3>
+                <p class="success-message">
+                    Cảm ơn bạn đã mua hàng tại TechZone! 🎉<br>
+                    Đơn hàng của bạn đang được xử lý.<br>
+                    Chúng tôi sẽ liên hệ xác nhận trong thời gian sớm nhất.
+                </p>
+                <button class="success-btn" id="success-close-btn">
+                    🏠 Tiếp tục mua sắm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TOAST CONTAINER ============ -->
+    <div class="toast-container" id="toast-container">
+        <!-- Toasts will be added by JS -->
+    </div>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <div class="footer-container">
+            <!-- Col 1: About -->
+            <div class="footer-col">
+                <h3>⚡ TechZone</h3>
+                <p>Shop công nghệ uy tín hàng đầu Việt Nam. Cam kết sản phẩm chính hãng, giá tốt nhất thị trường.</p>
+                <div class="footer-social">
+                    <a href="#" title="Facebook">📘</a>
+                    <a href="#" title="Instagram">📸</a>
+                    <a href="#" title="YouTube">📺</a>
+                    <a href="#" title="TikTok">🎵</a>
+                </div>
+            </div>
+            <!-- Col 2: Quick Links -->
+            <div class="footer-col">
+                <h3>Liên kết</h3>
+                <ul>
+                    <li><a href="#">→ Trang chủ</a></li>
+                    <li><a href="#products">→ Sản phẩm</a></li>
+                    <li><a href="#">→ Khuyến mãi</a></li>
+                    <li><a href="#">→ Tin tức</a></li>
+                    <li><a href="#">→ Về chúng tôi</a></li>
+                </ul>
+            </div>
+            <!-- Col 3: Support -->
+            <div class="footer-col">
+                <h3>Hỗ trợ</h3>
+                <ul>
+                    <li><a href="#">→ Hướng dẫn mua hàng</a></li>
+                    <li><a href="#">→ Chính sách đổi trả</a></li>
+                    <li><a href="#">→ Chính sách bảo hành</a></li>
+                    <li><a href="#">→ Phương thức thanh toán</a></li>
+                    <li><a href="#">→ Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+            <!-- Col 4: Contact -->
+            <div class="footer-col">
+                <h3>Liên hệ</h3>
+                <ul>
+                    <li><a href="#">📍 123 Nguyễn Huệ, Q.1, TP.HCM</a></li>
+                    <li><a href="tel:19001234">📞 Hotline: 1900 1234</a></li>
+                    <li><a href="mailto:support@techzone.vn">✉️ support@techzone.vn</a></li>
+                    <li><a href="#">🕐 8:00 - 21:00 (T2 - CN)</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 <span class="gradient-text">TechZone</span>. All rights reserved.</p>
+            <p>Bài tập lớn môn JavaScript — Nhóm X</p>
+        </div>
+    </footer>
+
+    <!-- ============ SCRIPTS ============ -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
