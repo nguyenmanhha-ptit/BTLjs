@@ -14,6 +14,7 @@ let cart = [];                    // Mảng giỏ hàng: [{id, quantity}]
 let currentCategory = 'tat-ca';  // Danh mục đang chọn
 let currentSearch = '';           // Từ khóa tìm kiếm hiện tại
 let currentSort = 'default';     // Tiêu chí sắp xếp hiện tại
+let userRatings = {};             // Đánh giá của user: {productId: rating}
 
 // ============ THAM CHIẾU DOM ============
 // Lưu tham chiếu 1 lần để dùng nhiều lần → tăng hiệu suất
@@ -33,6 +34,8 @@ const checkoutBtn = document.getElementById('checkout-btn');
 const checkoutModal = document.getElementById('checkout-modal');
 const checkoutForm = document.getElementById('checkout-form');
 const successModal = document.getElementById('success-modal');
+const ordersModal = document.getElementById('orders-modal');
+const ordersListEl = document.getElementById('orders-list');
 
 const toastContainer = document.getElementById('toast-container');
 
@@ -63,19 +66,286 @@ function layPhanTramGiam(oldPrice, price) {
 // ============================================
 // HÀM 3: hienThiSao(rating)
 // ============================================
-// Mô tả: Tạo chuỗi sao đánh giá từ điểm rating
-// VD: rating=4.5 → "★★★★★" (4 sao đầy + 1 nửa sao xấp xỉ)
+// Mô tả: Tạo chuỗi HTML sao đánh giá (chỉ hiển thị, không click)
+//         Trên product card: chỉ xem, không đánh giá trực tiếp
+//         Đánh giá chỉ được thực hiện trong đơn hàng đã nhận
 // Yêu cầu: Hàm tự định nghĩa, Vòng lặp
 function hienThiSao(rating) {
-    let stars = '';
+    let starsHTML = '';
     for (let i = 1; i <= 5; i++) {
         if (i <= Math.round(rating)) {
-            stars += '★';
+            starsHTML += '<span class="star-icon star-filled">★</span>';
         } else {
-            stars += '☆';
+            starsHTML += '<span class="star-icon">★</span>';
         }
     }
-    return stars;
+    return starsHTML;
+}
+
+// ============================================
+// HÀM: hienThiSaoTuongTac(rating, orderId, itemIndex)
+// ============================================
+// Mô tả: Tạo chuỗi HTML sao đánh giá CÓ THỂ CLICK
+//         Chỉ dùng trong đơn hàng đã nhận (status = 'received')
+// Yêu cầu: Hàm tự định nghĩa, Vòng lặp, DOM
+function hienThiSaoTuongTac(rating, orderId, itemIndex) {
+    let starsHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        let starClass = 'star-icon star-interactive';
+        if (i <= Math.round(rating)) {
+            starClass += ' star-filled';
+        }
+        starsHTML += '<span class="' + starClass + '" data-star="' + i + '" ' +
+            'data-order="' + orderId + '" data-item="' + itemIndex + '" ' +
+            'onclick="danhGiaSanPhamDonHang(' + orderId + ', ' + itemIndex + ', ' + i + ')" ' +
+            'title="Đánh giá ' + i + ' sao">★</span>';
+    }
+    return starsHTML;
+}
+
+// ============================================
+// HÀM: danhGiaSanPhamDonHang(orderId, itemIndex, star)
+// ============================================
+// Mô tả: Xử lý khi user click sao đánh giá SP trong đơn hàng
+//         Chỉ cho phép đánh giá khi đơn hàng đã nhận
+//         Lưu đánh giá vào đơn hàng + userRatings + localStorage
+// Yêu cầu: DOM, If/Else, localStorage
+function danhGiaSanPhamDonHang(orderId, itemIndex, star) {
+    let orders = taiDonHang();
+    let order = null;
+
+    // Tìm đơn hàng theo id
+    for (let i = 0; i < orders.length; i++) {
+        if (orders[i].id === orderId) {
+            order = orders[i];
+            break;
+        }
+    }
+
+    if (!order || order.status !== 'received') {
+        hienThongBao('Bạn chỉ có thể đánh giá sau khi nhận hàng!', 'error');
+        return;
+    }
+
+    // Lưu đánh giá vào item trong đơn hàng
+    if (order.items[itemIndex]) {
+        order.items[itemIndex].rating = star;
+
+        // Cập nhật userRatings theo productId
+        if (order.items[itemIndex].productId) {
+            userRatings[order.items[itemIndex].productId] = star;
+            luuDanhGia();
+        }
+    }
+
+    // Lưu đơn hàng đã cập nhật
+    localStorage.setItem('techzone-orders', JSON.stringify(orders));
+
+    // Cập nhật giao diện sao (không cần re-render toàn bộ)
+    let allStars = document.querySelectorAll(
+        '.star-interactive[data-order="' + orderId + '"][data-item="' + itemIndex + '"]'
+    );
+    for (let i = 0; i < allStars.length; i++) {
+        let starValue = parseInt(allStars[i].getAttribute('data-star'));
+        if (starValue <= star) {
+            allStars[i].classList.add('star-filled');
+        } else {
+            allStars[i].classList.remove('star-filled');
+        }
+    }
+
+    // Cập nhật label đã đánh giá
+    let ratingRow = allStars[0].closest('.order-item-rating');
+    if (ratingRow) {
+        let label = ratingRow.querySelector('.rating-user-label');
+        if (!label) {
+            let newLabel = document.createElement('span');
+            newLabel.className = 'rating-user-label';
+            newLabel.textContent = star + ' sao ✓';
+            ratingRow.appendChild(newLabel);
+        } else {
+            label.textContent = star + ' sao ✓';
+        }
+    }
+
+    // Cập nhật lại sao trên product card
+    locSanPham();
+
+    let itemName = order.items[itemIndex].name;
+    hienThongBao('Đã đánh giá "' + itemName + '" ' + star + ' sao ⭐', 'success');
+}
+
+// ============================================
+// HÀM: xacNhanNhanHang(orderId)
+// ============================================
+// Mô tả: Cập nhật trạng thái đơn hàng thành 'received'
+//         Sau đó cho phép đánh giá sản phẩm
+// Yêu cầu: DOM, localStorage, If/Else
+function xacNhanNhanHang(orderId) {
+    let orders = taiDonHang();
+
+    for (let i = 0; i < orders.length; i++) {
+        if (orders[i].id === orderId) {
+            orders[i].status = 'received';
+            break;
+        }
+    }
+
+    localStorage.setItem('techzone-orders', JSON.stringify(orders));
+    hienThiDonHang(); // Re-render
+    hienThongBao('Đã xác nhận nhận hàng! Bạn có thể đánh giá sản phẩm ngay bây giờ.', 'success');
+}
+
+// ============================================
+// HÀM: hienThiDonHang()
+// ============================================
+// Mô tả: Hiển thị danh sách đơn hàng trong modal
+//         Mỗi đơn: mã đơn, ngày, trạng thái, danh sách SP, tổng tiền
+//         Nếu đã nhận → hiện sao đánh giá cho từng SP
+// Yêu cầu: DOM, Vòng lặp, If/Else
+function hienThiDonHang() {
+    let orders = taiDonHang();
+
+    if (orders.length === 0) {
+        ordersListEl.innerHTML =
+            '<div class="orders-empty">' +
+                '<div class="orders-empty-icon">📦</div>' +
+                '<p class="orders-empty-text">Bạn chưa có đơn hàng nào</p>' +
+                '<p class="orders-empty-sub">Hãy mua sắm và quay lại đây nhé!</p>' +
+            '</div>';
+        return;
+    }
+
+    // Đảo ngược: đơn mới nhất lên trước
+    let sortedOrders = orders.slice().reverse();
+    let html = '';
+
+    for (let i = 0; i < sortedOrders.length; i++) {
+        let order = sortedOrders[i];
+
+        // Trạng thái đơn hàng
+        let statusClass = '';
+        let statusText = '';
+        let statusIcon = '';
+        if (order.status === 'received') {
+            statusClass = 'status-received';
+            statusText = 'Đã nhận hàng';
+            statusIcon = '✅';
+        } else {
+            statusClass = 'status-processing';
+            statusText = 'Đang xử lý';
+            statusIcon = '🔄';
+        }
+
+        // Danh sách sản phẩm trong đơn
+        let itemsHTML = '';
+        for (let j = 0; j < order.items.length; j++) {
+            let item = order.items[j];
+            let itemTotal = item.price * item.quantity;
+
+            // Tìm ảnh sản phẩm
+            let product = null;
+            if (item.productId) {
+                product = timSanPhamTheoId(item.productId);
+            }
+            let imgHTML = '';
+            if (product && product.image) {
+                imgHTML = '<img src="' + product.image + '" alt="' + item.name + '" class="order-item-img">';
+            } else {
+                imgHTML = '<span class="order-item-emoji">📦</span>';
+            }
+
+            // Đánh giá sao (chỉ hiện khi đã nhận hàng)
+            let ratingHTML = '';
+            if (order.status === 'received') {
+                let currentRating = item.rating || 0;
+                if (currentRating > 0) {
+                    // Đã đánh giá → hiện sao filled + label
+                    ratingHTML = '<div class="order-item-rating">' +
+                        '<span class="order-rating-label">Đánh giá:</span>' +
+                        hienThiSaoTuongTac(currentRating, order.id, j) +
+                        '<span class="rating-user-label">' + currentRating + ' sao ✓</span>' +
+                    '</div>';
+                } else {
+                    // Chưa đánh giá → hiện sao rỗng clickable
+                    ratingHTML = '<div class="order-item-rating">' +
+                        '<span class="order-rating-label">Đánh giá:</span>' +
+                        hienThiSaoTuongTac(0, order.id, j) +
+                    '</div>';
+                }
+            } else {
+                ratingHTML = '<div class="order-item-rating-hint">' +
+                    '<span>⭐ Nhận hàng để đánh giá</span>' +
+                '</div>';
+            }
+
+            itemsHTML += '<div class="order-item">' +
+                '<div class="order-item-left">' +
+                    imgHTML +
+                    '<div class="order-item-info">' +
+                        '<div class="order-item-name">' + item.name + '</div>' +
+                        '<div class="order-item-meta">SL: ' + item.quantity + ' × ' + dinhDangGia(item.price) + '</div>' +
+                        ratingHTML +
+                    '</div>' +
+                '</div>' +
+                '<div class="order-item-total">' + dinhDangGia(itemTotal) + '</div>' +
+            '</div>';
+        }
+
+        // Nút xác nhận nhận hàng
+        let actionHTML = '';
+        if (order.status !== 'received') {
+            actionHTML = '<button class="order-receive-btn" onclick="xacNhanNhanHang(' + order.id + ')">' +
+                '📦 Xác nhận đã nhận hàng</button>';
+        }
+
+        html += '<div class="order-card ' + statusClass + '">' +
+            '<div class="order-card-header">' +
+                '<div class="order-card-info">' +
+                    '<div class="order-id">Đơn #' + order.id.toString().slice(-6) + '</div>' +
+                    '<div class="order-date">' + order.date + '</div>' +
+                '</div>' +
+                '<div class="order-status ' + statusClass + '">' + statusIcon + ' ' + statusText + '</div>' +
+            '</div>' +
+            '<div class="order-items">' + itemsHTML + '</div>' +
+            '<div class="order-card-footer">' +
+                '<div class="order-total">Tổng: <strong>' + dinhDangGia(order.total) + '</strong></div>' +
+                actionHTML +
+            '</div>' +
+        '</div>';
+    }
+
+    ordersListEl.innerHTML = html;
+}
+
+// ============================================
+// HÀM: dongMoModalDonHang()
+// ============================================
+// Mô tả: Đóng/mở modal đơn hàng
+function dongMoModalDonHang() {
+    if (ordersModal.classList.contains('active')) {
+        ordersModal.classList.remove('active');
+    } else {
+        hienThiDonHang(); // Render trước khi mở
+        ordersModal.classList.add('active');
+    }
+}
+
+// ============================================
+// HÀM PHỤ TRỢ: luuDanhGia() / taiDanhGia()
+// ============================================
+// Mô tả: Lưu/tải đánh giá user từ localStorage
+function luuDanhGia() {
+    localStorage.setItem('techzone-ratings', JSON.stringify(userRatings));
+}
+
+function taiDanhGia() {
+    let saved = localStorage.getItem('techzone-ratings');
+    if (saved) {
+        userRatings = JSON.parse(saved);
+    } else {
+        userRatings = {};
+    }
 }
 
 // ============================================
@@ -153,7 +423,7 @@ function timKiemSanPham(keyword) {
 // ============================================
 // HÀM 7: sapXepSanPham(productList, criteria)
 // ============================================
-// Mô tả: Sắp xếp mảng sản phẩm theo tiêu chí
+// Mô tả: Sắp xếp mảng sản ph ẩm theo tiêu chí
 // Tiêu chí: 'price-asc', 'price-desc', 'name-asc', 'rating-desc'
 // Yêu cầu: If/Else, Hàm tự định nghĩa
 function sapXepSanPham(productList, criteria) {
@@ -262,7 +532,7 @@ function hienThiSanPham(productList) {
 
         card.innerHTML =
             '<div class="product-image-container">' +
-                '<span class="product-emoji">' + product.image + '</span>' +
+                '<img class="product-img" src="' + product.image + '" alt="' + product.name + '" loading="lazy">' +
                 badgeHTML +
             '</div>' +
             '<div class="product-info">' +
@@ -270,8 +540,9 @@ function hienThiSanPham(productList) {
                 '<h3 class="product-name">' + product.name + '</h3>' +
                 '<p class="product-desc">' + product.description + '</p>' +
                 '<div class="product-rating">' +
-                    '<span class="stars">' + hienThiSao(product.rating) + '</span>' +
-                    '<span class="rating-number">' + product.rating + '</span>' +
+                    '<span class="stars">' + hienThiSao(userRatings[product.id] || product.rating) + '</span>' +
+                    '<span class="rating-number">' + (userRatings[product.id] ? userRatings[product.id] + '.0' : product.rating) + '</span>' +
+                    (userRatings[product.id] ? '<span class="rating-user-label">Đã đánh giá</span>' : '') +
                 '</div>' +
                 '<div class="product-price-row">' +
                     '<div>' +
@@ -430,7 +701,7 @@ function hienThiGioHang() {
                 itemEl.className = 'cart-item';
 
                 itemEl.innerHTML =
-                    '<div class="cart-item-image">' + product.image + '</div>' +
+                    '<div class="cart-item-image"><img src="' + product.image + '" alt="' + product.name + '"></div>' +
                     '<div class="cart-item-details">' +
                         '<div class="cart-item-name">' + product.name + '</div>' +
                         '<div class="cart-item-price">' + dinhDangGia(product.price) + '</div>' +
@@ -616,17 +887,20 @@ function xuLyDatHang() {
         customer: formData,
         items: [],
         total: tinhTongTien(),
-        date: new Date().toLocaleString('vi-VN')
+        date: new Date().toLocaleString('vi-VN'),
+        status: 'processing' // Trạng thái: 'processing' → 'received'
     };
 
-    // Copy cart items vào đơn hàng
+    // Copy cart items vào đơn hàng (bao gồm productId để đánh giá sau)
     for (let i = 0; i < cart.length; i++) {
         let product = timSanPhamTheoId(cart[i].id);
         if (product) {
             order.items.push({
+                productId: product.id,
                 name: product.name,
                 price: product.price,
-                quantity: cart[i].quantity
+                quantity: cart[i].quantity,
+                rating: 0 // Chưa đánh giá
             });
         }
     }
@@ -744,6 +1018,21 @@ function dangKySuKien() {
         dongMoGioHang();
     });
 
+    // --- Đơn hàng: Mở/Đóng ---
+    document.getElementById('orders-btn').addEventListener('click', function () {
+        dongMoModalDonHang();
+    });
+
+    document.getElementById('orders-close-btn').addEventListener('click', function () {
+        ordersModal.classList.remove('active');
+    });
+
+    ordersModal.addEventListener('click', function (e) {
+        if (e.target === ordersModal) {
+            ordersModal.classList.remove('active');
+        }
+    });
+
     // --- Thanh toán: Mở modal ---
     checkoutBtn.addEventListener('click', function () {
         dongMoGioHang(); // Đóng sidebar
@@ -852,6 +1141,7 @@ function dangKySuKien() {
 function khoiTao() {
     taiGiaoDien();
     taiGioHang();
+    taiDanhGia();
     hienThiBoLocDanhMuc();
     locSanPham();
     hienThiGioHang();

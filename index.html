@@ -37,6 +37,10 @@
                 <button class="header-btn" id="theme-toggle-btn" title="Chuyển đổi giao diện">
                     🌙
                 </button>
+                <!-- Orders Button -->
+                <button class="header-btn" id="orders-btn" title="Đơn hàng">
+                    📋
+                </button>
                 <!-- Cart Button -->
                 <button class="header-btn" id="cart-btn" title="Giỏ hàng">
                     🛒
@@ -208,6 +212,21 @@
                 <button class="success-btn" id="success-close-btn">
                     🏠 Tiếp tục mua sắm
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ ORDERS MODAL ============ -->
+    <div class="modal-overlay" id="orders-modal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h3 class="modal-title">📋 Đơn hàng của bạn</h3>
+                <button class="modal-close-btn" id="orders-close-btn" title="Đóng">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="orders-list">
+                    <!-- Rendered by JS -->
+                </div>
             </div>
         </div>
     </div>
